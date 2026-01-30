@@ -1,0 +1,6 @@
+Django==4.2.8
+sqlparse==0.4.4
+dj-database-url==1.0.0
+psycopg2-binary==2.9.11
+vercel-wsgi==0.7.0
+whitenoise==6.5.0

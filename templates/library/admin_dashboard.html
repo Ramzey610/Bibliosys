@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Admin - Bibliothèque{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-chart-line"></i> Tableau de Bord Admin</h1>
+        <p class="text-muted">Bienvenue, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                <h6 class="card-title text-muted">Total Livres</h6>
+                <h2 class="card-text">{{ total_books }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h6 class="card-title text-muted">Disponibles</h6>
+                <h2 class="card-text">{{ available_books }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-info mb-3"></i>
+                <h6 class="card-title text-muted">Total Lecteurs</h6>
+                <h2 id="totalLecteurs" class="card-text"><span id="totalLecteursActive">{{ total_lecteurs }}</span> actifs / <span id="totalLecteursTotal">{{ total_lecteurs_total }}</span> total</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-exchange-alt fa-3x text-warning mb-3"></i>
+                <h6 class="card-title text-muted">Emprunts Actifs</h6>
+                <h2 class="card-text">{{ active_loans }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Emprunts en Retard</h5>
+            </div>
+            <div class="card-body">
+                <h3 class="text-danger">{{ overdue_loans }}</h3>
+                <p class="text-muted">Retards à gérer</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-folder-open"></i> Catégories</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total:</strong> {{ categories_count }}</p>
+                <p><strong>Actives:</strong> {{ active_categories }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Loans -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-history"></i> Emprunts Récents</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Membre</th>
+                    <th>Livre</th>
+                    <th>Date d'Emprunt</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in recent_loans %}
+                <tr>
+                    <td>{{ loan.member.get_full_name }}</td>
+                    <td>{{ loan.book.title }}</td>
+                    <td>{{ loan.loan_date|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if loan.status == 'EN_COURS' %}
+                            <span class="badge bg-info">En cours</span>
+                        {% elif loan.status == 'RETOURNÉ' %}
+                            <span class="badge bg-success">Retourné</span>
+                        {% else %}
+                            <span class="badge bg-danger">En retard</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'loans:loan_detail' loan.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> Voir
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Aucun emprunt récent</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <a href="{% url 'loans:loan_list' %}" class="btn btn-primary" data-bs-toggle="tooltip" title="Voir la liste complète des emprunts">Voir tous les emprunts</a>
+    <a href="{% url 'members:member_list' %}" class="btn btn-info" data-bs-toggle="tooltip" title="Gérer les lecteurs existants">Gestion Lecteurs</a>
+    <a href="{% url 'library:book_list' %}" class="btn btn-outline-success" data-bs-toggle="tooltip" title="Gérer les livres de la bibliothèque">Gérer les livres</a>
+</div>
+
+
+{% endblock %}

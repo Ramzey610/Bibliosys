@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestion de Bibliothèque{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --danger-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ecf0f1;
+            padding-top: 60px;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .badge-available {
+            background-color: var(--success-color);
+        }
+        
+        .badge-unavailable {
+            background-color: var(--danger-color);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .book-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'library:dashboard' %}">
+                <i class="fas fa-book"></i> Bibliothèque
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'library:book_list' %}">
+                                <i class="fas fa-list"></i> Livres
+                            </a>
+                        </li>
+                        {% if user.is_staff or user.role == 'admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'members:member_list' %}">
+                                    <i class="fas fa-users"></i> Gestion Lecteurs
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'loans:loan_list' %}">
+                                    <i class="fas fa-exchange-alt"></i> Emprunts
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'library:dashboard' %}">
+                                    <i class="fas fa-cog"></i> Administration
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'loans:my_loans' %}">
+                                    <i class="fas fa-book-open"></i> Mes Emprunts
+                                </a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i> {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profil</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Déconnexion</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Connexion
+                            </a>
+                        </li>
+                        {% url 'accounts:register' as register_url %}
+                        {% if register_url %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ register_url }}">
+                                <i class="fas fa-user-plus"></i> Inscription
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link disabled" href="#" title="Inscription désactivée">
+                                <i class="fas fa-user-plus"></i> Inscription (désactivée)
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Content -->
+    <main class="container mt-4">
+        {% block breadcrumb %}{% endblock %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <div class="container text-center">
+            <p>&copy; 2026 Système de Gestion de Bibliothèque. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <!-- Quick Add Lecteur Modal (global) -->
+    <div class="modal fade" id="quickAddLecteurModal" tabindex="-1" aria-labelledby="quickAddLecteurLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form id="quickAddForm" method="post" action="{% url 'members:member_create' %}">
+            {% csrf_token %}
+            <div class="modal-header">
+              <h5 class="modal-title" id="quickAddLecteurLabel">Ajouter un Lecteur Rapide</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Prénom</label>
+                <input name="first_name" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Nom</label>
+                <input name="last_name" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input name="email" type="email" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Téléphone</label>
+                <input name="phone" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Adresse</label>
+                <textarea name="address" class="form-control" rows="2"></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Numéro d'adhésion (optionnel)</label>
+                <input name="numero_abonnement" class="form-control" placeholder="Laisser vide pour générer automatiquement">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Nom d'utilisateur (optionnel)</label>
+                <input name="user_username" type="text" class="form-control" placeholder="Nom d'utilisateur (sinon email)">
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Mot de passe (optionnel)</label>
+                  <input name="user_password" type="password" class="form-control" placeholder="Choisir un mot de passe, sinon il sera généré">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Confirmer le mot de passe</label>
+                  <input name="user_confirm_password" type="password" class="form-control" placeholder="Confirmer le mot de passe">
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Statut</label>
+                <select name="statut" class="form-control">
+                  <option value="active" selected>Actif</option>
+                  <option value="inactive">Inactif</option>
+                  <option value="suspended">Suspendu</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Remarques</label>
+                <textarea name="remarques" class="form-control" rows="2"></textarea>
+              </div>
+
+              <div id="quickAddResult" class="alert d-none" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+              <button type="submit" class="btn btn-success">Créer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {% block extra_js %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Focus the first input when modal is shown
+    var quickAddModal = document.getElementById('quickAddLecteurModal')
+    if (quickAddModal) {
+      quickAddModal.addEventListener('shown.bs.modal', function () {
+        var input = quickAddModal.querySelector('input[name="first_name"]')
+        if (input) input.focus()
+      })
+
+      // Ensure CSRF token is up-to-date before form submission
+      var quickForm = quickAddModal.querySelector('form')
+      if (quickForm) {
+        // Helper to read CSRF cookie
+        function getCookie(name) {
+          var value = '; ' + document.cookie
+          var parts = value.split('; ' + name + '=')
+          if (parts.length === 2) return parts.pop().split(';').shift()
+        }
+
+        quickForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var resultDiv = document.getElementById('quickAddResult');
+          resultDiv.classList.add('d-none');
+          resultDiv.classList.remove('alert-success','alert-danger','alert-warning','alert-info');
+
+          var submitBtn = quickForm.querySelector('button[type="submit"]');
+          submitBtn.disabled = true;
+          var oldHtml = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Création...';
+
+          var formData = new FormData(quickForm);
+
+          fetch(quickForm.action, {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': getCookie('csrftoken') || ''
+            },
+            body: formData,
+            credentials: 'same-origin'
+          }).then(function (res) {
+            return res.json().then(function (data) { return {status: res.status, ok: res.ok, data: data}; });
+          }).then(function (resp) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = oldHtml;
+            if (resp.ok) {
+              if (resp.data.status === 'ok') {
+                resultDiv.classList.remove('d-none');
+                resultDiv.classList.add('alert','alert-success');
+                resultDiv.innerHTML = '<strong>Compte créé</strong><br>Identifiants: <code>' + resp.data.username + '</code> / <code>' + resp.data.password + '</code><br><a href="' + resp.data.member_url + '" class="btn btn-sm btn-link mt-2">Voir le lecteur</a>';
+                // Mettre à jour les compteurs de lecteurs (actifs / total)
+                var activeEl = document.getElementById('totalLecteursActive');
+                var totalEl = document.getElementById('totalLecteursTotal');
+                if (totalEl) { totalEl.textContent = (parseInt(totalEl.textContent || '0') + 1).toString(); }
+                if (resp.data.statut === 'active') {
+                  if (activeEl) { activeEl.textContent = (parseInt(activeEl.textContent || '0') + 1).toString(); }
+                }
+              } else if (resp.data.status === 'partial') {
+                resultDiv.classList.remove('d-none');
+                resultDiv.classList.add('alert','alert-warning');
+                resultDiv.innerHTML = '<strong>Attention</strong><br>' + resp.data.message + '<br><a href="' + resp.data.member_url + '" class="btn btn-sm btn-link mt-2">Voir le lecteur</a>';
+                var activeEl = document.getElementById('totalLecteursActive');
+                var totalEl = document.getElementById('totalLecteursTotal');
+                if (totalEl) { totalEl.textContent = (parseInt(totalEl.textContent || '0') + 1).toString(); }
+                if (resp.data.statut === 'active') {
+                  if (activeEl) { activeEl.textContent = (parseInt(activeEl.textContent || '0') + 1).toString(); }
+                }
+              } else {
+                resultDiv.classList.remove('d-none');
+                resultDiv.classList.add('alert','alert-info');
+                resultDiv.innerHTML = JSON.stringify(resp.data);
+              }
+            } else if (resp.status === 400) {
+              resultDiv.classList.remove('d-none');
+              resultDiv.classList.add('alert','alert-danger');
+              var html = '<strong>Erreurs :</strong><ul>';
+              for (var k in resp.data.errors) {
+                 html += '<li>' + k + ': ' + (Array.isArray(resp.data.errors[k]) ? resp.data.errors[k].join(', ') : resp.data.errors[k]) + '</li>';
+              }
+              html += '</ul>';
+              resultDiv.innerHTML = html;
+            } else {
+              resultDiv.classList.remove('d-none');
+              resultDiv.classList.add('alert','alert-danger');
+              resultDiv.innerHTML = 'Erreur serveur. Statut: ' + resp.status;
+            }
+          }).catch(function (err) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = oldHtml;
+            resultDiv.classList.remove('d-none');
+            resultDiv.classList.add('alert','alert-danger');
+            resultDiv.innerHTML = 'Erreur réseau: ' + err;
+          });
+        }, true)
+      }
+    }
+    </script>
+    {% endblock %}
+</body>
+</html>

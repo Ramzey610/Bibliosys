@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Emprunts - Bibliothèque{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+        <li class="breadcrumb-item active">Emprunts</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-exchange-alt"></i> Gestion des Emprunts</h1>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{% url 'loans:liste_demandes_emprunt' %}" class="btn btn-success">
+            <i class="fas fa-list"></i> Voir Demandes
+        </a>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                {{ form.search }}
+            </div>
+            <div class="col-md-4">
+                {{ form.status }}
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filtrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loans Table -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Membre</th>
+                    <th>Livre</th>
+                    <th>Date Emprunt</th>
+                    <th>Date Échéance</th>
+                    <th>Statut</th>
+                    <th>Amende</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr class="{% if loan.status == 'EN_RETARD' %}table-danger{% endif %}">
+                    <td>{{ loan.id }}</td>
+                    <td>{{ loan.member.get_full_name }}</td>
+                    <td>{{ loan.book.title }}</td>
+                    <td>{{ loan.loan_date|date:"d/m/Y" }}</td>
+                    <td>{{ loan.due_date|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if loan.status == 'EN_COURS' %}
+                            <span class="badge bg-info">En cours</span>
+                        {% elif loan.status == 'RETOURNÉ' %}
+                            <span class="badge bg-success">Retourné</span>
+                        {% else %}
+                            <span class="badge bg-danger">En retard</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if loan.fine > 0 %}
+                            <span class="badge bg-warning">{{ loan.fine }}€</span>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'loans:loan_detail' loan.pk %}" class="btn btn-sm btn-primary" title="Voir">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        {% if loan.status == 'EN_COURS' %}
+                            <a href="{% url 'loans:loan_detail' loan.pk %}" class="btn btn-sm btn-success" title="Gérer">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted">Aucun emprunt trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">Première</a>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

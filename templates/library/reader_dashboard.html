@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Lecteur - Bibliothèque{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1><i class="fas fa-book-open"></i> Tableau de Bord</h1>
+        <p class="text-muted">Bienvenue, {{ user.get_full_name|default:user.username }}!</p>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                <h6 class="card-title text-muted">Livres Disponibles</h6>
+                <h2 class="card-text">{{ available_books }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-exchange-alt fa-3x text-info mb-3"></i>
+                <h6 class="card-title text-muted">Mes Emprunts Actifs</h6>
+                <h2 class="card-text">{{ user_loans.count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Active Loans -->
+{% if user_loans %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-book-open"></i> Mes Emprunts Actuels</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Livre</th>
+                    <th>Auteur</th>
+                    <th>Date d'Emprunt</th>
+                    <th>Date d'Échéance</th>
+                    <th>Jours Restants</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in user_loans %}
+                <tr class="{% if loan.is_overdue %}table-danger{% endif %}">
+                    <td><strong>{{ loan.book.title }}</strong></td>
+                    <td>{{ loan.book.author }}</td>
+                    <td>{{ loan.loan_date|date:"d/m/Y" }}</td>
+                    <td>{{ loan.due_date|date:"d/m/Y" }}</td>
+                    <td>
+                        <span class="badge {% if loan.is_overdue %}bg-danger{% else %}bg-info{% endif %}">
+                            {% if loan.is_overdue %}
+                                En retard
+                            {% else %}
+                                {% load library_extras %}
+                                {{ loan.due_date|days_until }}
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'loans:loan_detail' loan.pk %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> Voir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-6">
+        <a href="{% url 'library:book_list' %}" class="btn btn-primary w-100 mb-2">
+            <i class="fas fa-search"></i> Explorer les Livres
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="{% url 'loans:my_loans' %}" class="btn btn-info w-100 mb-2">
+            <i class="fas fa-history"></i> Historique
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Détail Lecteur - Bibliothèque{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'members:member_list' %}">Lecteurs</a></li>
+        <li class="breadcrumb-item active">{{ member.get_full_name }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">{{ member.get_full_name }}</h4>
+            </div>
+            <div class="card-body">
+                {% if member.status != 'active' %}
+                <div class="alert alert-danger">
+                    <strong>Compte désactivé :</strong> Ce lecteur est <strong>{{ member.status|upper }}</strong>. Le compte utilisateur lié ne peut pas se connecter tant que le statut n'est pas <em>active</em>.
+                </div>
+                {% endif %}
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Numéro d'Adhésion</h6>
+                        <p><strong>{{ member.member_number }}</strong></p>
+                        
+                        <h6 class="text-muted">Email</h6>
+                        <p><a href="mailto:{{ member.email }}">{{ member.email }}</a></p>
+                        
+                        <h6 class="text-muted">Téléphone</h6>
+                        <p>{{ member.phone|default:"N/A" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Date d'Inscription</h6>
+                        <p>{{ member.registration_date|date:"d/m/Y" }}</p>
+                        
+                        <h6 class="text-muted">Statut</h6>
+                        <p>
+                            {% if member.status == 'active' %}
+                                <span class="badge bg-success p-2">ACTIF</span>
+                            {% elif member.status == 'inactive' %}
+                                <span class="badge bg-secondary p-2">INACTIF</span>
+                            {% else %}
+                                <span class="badge bg-danger p-2">SUSPENDU</span>
+                            {% endif %}
+                        </p>
+                        
+                        <h6 class="text-muted">Emprunts Actifs</h6>
+                        <p><strong>{{ active_loans.count }}</strong> emprunt(s)</p>
+                    </div>
+                </div>
+
+                {% if member.address %}
+                <h6 class="text-muted">Adresse</h6>
+                <p>{{ member.address }}</p>
+                {% endif %}
+
+                {% if member.notes %}
+                <hr>
+                <h6 class="text-muted">Remarques</h6>
+                <p>{{ member.notes }}</p>
+                {% endif %}
+
+                <hr>
+
+                <a href="{% url 'members:member_update' member.pk %}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Modifier
+                </a>
+                <a href="{% url 'members:member_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-book-open"></i> Emprunts Actuels ({{ active_loans.count }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if active_loans %}
+                <ul class="list-group list-group-flush">
+                    {% for loan in active_loans %}
+                    <li class="list-group-item">
+                        <a href="{% url 'loans:loan_detail' loan.pk %}">{{ loan.book.title }}</a>
+                        <br><small class="text-muted">{{ loan.book.author }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="p-3 text-muted mb-0">Aucun emprunt actif</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Historique</h5>
+            </div>
+            <div class="card-body">
+                <p>Total d'emprunts: <strong>{{ loan_history.count }}</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

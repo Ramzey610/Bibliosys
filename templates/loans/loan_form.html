@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Créer Emprunt - Bibliothèque{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'loans:loan_list' %}">Emprunts</a></li>
+        <li class="breadcrumb-item active">Créer</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-plus"></i> Créer un Nouvel Emprunt</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.book.label }}</label>
+                        {{ form.book }}
+                        {% if form.book.errors %}<div class="invalid-feedback d-block">{{ form.book.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.member.label }}</label>
+                        {{ form.member }}
+                        {% if form.member.errors %}<div class="invalid-feedback d-block">{{ form.member.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.due_date.label }}</label>
+                        {{ form.due_date }}
+                        {% if form.due_date.errors %}<div class="invalid-feedback d-block">{{ form.due_date.errors }}</div>{% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-check"></i> Créer l'Emprunt
+                    </button>
+                </form>
+
+                <hr>
+                <a href="{% url 'loans:loan_list' %}" class="btn btn-secondary w-100">Annuler</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} Catégorie - Bibliothèque{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %}"></i>
+                    {% if form.instance.pk %}Modifier la Catégorie{% else %}Ajouter une Catégorie{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.name.label }}</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors }}</div>{% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> {% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %}
+                    </button>
+                    <a href="{% url 'library:category_list' %}" class="btn btn-secondary">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

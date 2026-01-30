@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Détail Emprunt - Bibliothèque{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'loans:loan_list' %}">Emprunts</a></li>
+        <li class="breadcrumb-item active">Emprunt #{{ loan.id }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Emprunt #{{ loan.id }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Membre</h6>
+                        <p><a href="{% url 'members:member_detail' loan.member.pk %}">{{ loan.member.get_full_name }}</a></p>
+                        
+                        <h6 class="text-muted">Email</h6>
+                        <p>{{ loan.member.email }}</p>
+                        
+                        <h6 class="text-muted">Téléphone</h6>
+                        <p>{{ loan.member.phone|default:"N/A" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Livre</h6>
+                        <p><a href="{% url 'library:book_detail' loan.book.pk %}">{{ loan.book.title }}</a></p>
+                        
+                        <h6 class="text-muted">Auteur</h6>
+                        <p>{{ loan.book.author }}</p>
+                        
+                        <h6 class="text-muted">ISBN</h6>
+                        <p>{{ loan.book.isbn }}</p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Date d'Emprunt</h6>
+                        <p>{{ loan.loan_date|date:"d/m/Y H:i" }}</p>
+                        
+                        <h6 class="text-muted">Date d'Échéance</h6>
+                        <p>{{ loan.due_date|date:"d/m/Y" }}</p>
+                        
+                        <h6 class="text-muted">Jours Empruntés</h6>
+                        <p>{{ loan.get_days_borrowed }} jours</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Statut</h6>
+                        <p>
+                            {% if loan.status == 'EN_COURS' %}
+                                <span class="badge bg-info p-2">EN COURS</span>
+                            {% elif loan.status == 'RETOURNÉ' %}
+                                <span class="badge bg-success p-2">RETOURNÉ</span>
+                            {% else %}
+                                <span class="badge bg-danger p-2">EN RETARD</span>
+                            {% endif %}
+                        </p>
+                        
+                        {% if loan.return_date %}
+                        <h6 class="text-muted">Date de Retour</h6>
+                        <p>{{ loan.return_date|date:"d/m/Y H:i" }}</p>
+                        {% endif %}
+                        
+                        <h6 class="text-muted">Amende</h6>
+                        <p>
+                            {% if loan.fine > 0 %}
+                                <span class="badge bg-warning p-2">{{ loan.fine }}€</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                {% if loan.notes %}
+                <hr>
+                <h6 class="text-muted">Remarques</h6>
+                <p>{{ loan.notes }}</p>
+                {% endif %}
+
+                <hr>
+
+                {% if loan.status == 'EN_COURS' %}
+                    {% if user.is_staff or user.role == 'admin' %}
+                    <a href="{% url 'loans:liste_demandes_retour' %}" class="btn btn-success">
+                        <i class="fas fa-check"></i> Gérer Retours
+                    </a>
+                    {% elif can_request_return %}
+                    <!-- Le lecteur crée une demande de retour pré-remplie -->
+                    <a href="{% url 'loans:demande_retour' %}?emprunt={{ loan.pk }}" class="btn btn-primary">
+                        <i class="fas fa-undo"></i> Demande de retour
+                    </a>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'loans:loan_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Retour
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Status</h5>
+            </div>
+            <div class="card-body">
+                {% if loan.is_overdue %}
+                    <div class="alert alert-danger">
+                        <strong>Emprunt en Retard!</strong>
+                        <br>Retourner au plus tôt.
+                    </div>
+                {% elif loan.status == 'EN_COURS' %}
+                    <div class="alert alert-info">
+                        <strong>Emprunt en Cours</strong>
+                        <br>Expire le {{ loan.due_date|date:"d/m/Y" }}
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        <strong>Emprunt Terminé</strong>
+                        <br>Retourné le {{ loan.return_date|date:"d/m/Y" }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

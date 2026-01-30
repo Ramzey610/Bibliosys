@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter un Livre - Bibliothèque{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'library:book_list' %}">Livres</a></li>
+        <li class="breadcrumb-item active">{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %}"></i>
+                    {% if form.instance.pk %}Modifier le Livre{% else %}Ajouter un Nouveau Livre{% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.title.label }}</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}<div class="invalid-feedback d-block">{{ form.title.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.author.label }}</label>
+                            {{ form.author }}
+                            {% if form.author.errors %}<div class="invalid-feedback d-block">{{ form.author.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.isbn.label }}</label>
+                            {{ form.isbn }}
+                            {% if form.isbn.errors %}<div class="invalid-feedback d-block">{{ form.isbn.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.category.label }}</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}<div class="invalid-feedback d-block">{{ form.category.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.total_copies.label }}</label>
+                            {{ form.total_copies }}
+                            {% if form.total_copies.errors %}<div class="invalid-feedback d-block">{{ form.total_copies.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.available_copies.label }}</label>
+                            {{ form.available_copies }}
+                            {% if form.available_copies.errors %}<div class="invalid-feedback d-block">{{ form.available_copies.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.publisher.label }}</label>
+                            {{ form.publisher }}
+                            {% if form.publisher.errors %}<div class="invalid-feedback d-block">{{ form.publisher.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.language.label }}</label>
+                            {{ form.language }}
+                            {% if form.language.errors %}<div class="invalid-feedback d-block">{{ form.language.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.publication_date.label }}</label>
+                        {{ form.publication_date }}
+                        {% if form.publication_date.errors %}<div class="invalid-feedback d-block">{{ form.publication_date.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.description.label }}</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.is_active }}
+                        <label class="form-check-label">{{ form.is_active.label }}</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> {% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %}
+                    </button>
+                    <a href="{% url 'library:book_list' %}" class="btn btn-secondary">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

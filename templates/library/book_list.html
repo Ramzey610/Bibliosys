@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Livres - Bibliothèque{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+        <li class="breadcrumb-item active">Livres</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-list"></i> Catalogue des Livres</h1>
+    </div>
+    {% if user.is_staff or user.role == 'admin' %}
+    <div class="col-md-4 text-md-end">
+        <a href="{% url 'library:book_create' %}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Ajouter un Livre
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Search Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter"></i> Recherche et Filtres</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            {{ form.as_p }}
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Rechercher
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Books Grid -->
+<div class="row">
+    {% for book in books %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card book-card h-100">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ book.title }}</h5>
+                <p class="card-text text-muted">{{ book.author }}</p>
+                <p class="card-text small">
+                    <strong>ISBN:</strong> {{ book.isbn }}<br>
+                    <strong>Catégorie:</strong> {{ book.category.name|default:"N/A" }}
+                </p>
+                <p class="card-text">{{ book.description|truncatewords:20 }}</p>
+                <div class="mt-auto">
+                    {% if book.is_available %}
+                        <span class="badge badge-available bg-success mb-2">
+                            {{ book.available_copies }}/{{ book.total_copies }} Disponible
+                        </span>
+                    {% else %}
+                        <span class="badge badge-unavailable bg-danger mb-2">
+                            Indisponible
+                        </span>
+                    {% endif %}
+                </div>
+                <a href="{% url 'library:book_detail' book.pk %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-eye"></i> Détails
+                </a>
+                {% if user.is_authenticated and user.role == 'lecteur' %}
+                    {% if book.is_available %}
+                    <a href="{% url 'loans:demande_emprunt' %}?livre={{ book.pk }}" class="btn btn-sm btn-outline-primary ms-2">
+                        <i class="fas fa-plus"></i> Demande
+                    </a>
+                    {% endif %}
+                {% endif %}
+                {% if user.is_staff or user.role == 'admin' %}
+                <div class="btn-group btn-group-sm mt-2 w-100" role="group">
+                    <a href="{% url 'library:book_update' book.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'library:book_delete' book.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Aucun livre trouvé.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">Première</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédente</a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivante</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Dernière</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

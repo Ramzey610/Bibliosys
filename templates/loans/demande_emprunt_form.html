@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Demande d'emprunt{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'library:book_list' %}">Livres</a></li>
+    <li class="breadcrumb-item active">Demande d'emprunt</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-paper-plane"></i> Faire une demande d'emprunt</h5>
+      </div>
+      <div class="card-body">
+        {% if livre %}
+          <div class="mb-3">
+            <h6>Livre sélectionné :</h6>
+            <p><strong>{{ livre.title }}</strong> — {{ livre.author }}</p>
+            {% if livre.available_copies is not none %}
+              <p class="text-muted">Copies disponibles: {{ livre.available_copies }}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if not livre %}
+            <div class="mb-3">
+              {{ form.livre.label_tag }}
+              {{ form.livre }}
+              {% for err in form.livre.errors %}
+                <div class="text-danger small">{{ err }}</div>
+              {% endfor %}
+            </div>
+          {% else %}
+            {{ form.livre.as_hidden }}
+          {% endif %}
+
+          <div class="mb-3">
+            {{ form.commentaire.label_tag }}
+            {{ form.commentaire }}
+            {% for err in form.commentaire.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'library:book_list' %}" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary">Envoyer la demande</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

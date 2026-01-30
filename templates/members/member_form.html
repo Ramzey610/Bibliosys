@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %} Lecteur - Bibliothèque{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %}"></i>
+                    {% if form.instance.pk %}Modifier le Lecteur{% else %}Ajouter un Nouveau Lecteur{% endif %}
+                </h4>
+            </div> 
+            <div class="card-body">
+                {% if form.instance.pk and form.instance.statut != 'active' %}
+                <div class="alert alert-danger">
+                    <strong>Attention :</strong> Le statut actuel est <strong>{{ form.instance.statut|upper }}</strong> — tant que le statut n'est pas <em>active</em>, l'utilisateur lié ne pourra pas se connecter.
+                </div>
+                {% endif %}
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.first_name.label }}</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.last_name.label }}</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="invalid-feedback d-block">{{ form.last_name.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.email.label }}</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.phone.label }}</label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}<div class="invalid-feedback d-block">{{ form.phone.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.numero_abonnement.label }}</label>
+                        {{ form.numero_abonnement }}
+                        {% if form.numero_abonnement.errors %}<div class="invalid-feedback d-block">{{ form.numero_abonnement.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.address.label }}</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}<div class="invalid-feedback d-block">{{ form.address.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.statut.label }}</label>
+                            {{ form.statut }}
+                            {% if form.statut.errors %}<div class="invalid-feedback d-block">{{ form.statut.errors }}</div>{% endif %}
+                        </div>
+
+                    </div>
+
+                    {# Champs pour créer le compte utilisateur lié (visible aux admins) #}
+                    {% if request.user.is_staff %}
+                    <hr>
+                    <h5>Compte utilisateur lié (optionnel)</h5>
+                    <p class="text-muted">Vous pouvez renseigner un nom d'utilisateur et un mot de passe. Laisser vides pour génération automatique.</p>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.user_username.label }}</label>
+                            {{ form.user_username }}
+                            {% if form.user_username.errors %}<div class="invalid-feedback d-block">{{ form.user_username.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.user_password.label }}</label>
+                            {{ form.user_password }}
+                            {% if form.user_password.errors %}<div class="invalid-feedback d-block">{{ form.user_password.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.user_confirm_password.label }}</label>
+                            {{ form.user_confirm_password }}
+                            {% if form.user_confirm_password.errors %}<div class="invalid-feedback d-block">{{ form.user_confirm_password.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.remarques.label }}</label>
+                        {{ form.remarques }}
+                        {% if form.remarques.errors %}<div class="invalid-feedback d-block">{{ form.remarques.errors }}</div>{% endif %}
+                    </div> 
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> {% if form.instance.pk %}Modifier{% else %}Ajouter{% endif %}
+                    </button>
+                    <a href="{% url 'members:member_list' %}" class="btn btn-secondary">Annuler</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Demande de retour{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'library:dashboard' %}">Accueil</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'loans:my_loans' %}">Mes emprunts</a></li>
+    <li class="breadcrumb-item active">Demande de retour</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-undo"></i> Faire une demande de retour</h5>
+      </div>
+      <div class="card-body">
+        {% if emprunt %}
+          <div class="mb-3">
+            <h6>Emprunt sélectionné :</h6>
+            <p><strong>{{ emprunt.book.title }}</strong> — {{ emprunt.book.author }}</p>
+            <p class="text-muted">Emprunté le : {{ emprunt.loan_date|date:"SHORT_DATETIME_FORMAT" }}</p>
+            <p class="text-muted">Date d'échéance : {{ emprunt.due_date|date:"SHORT_DATETIME_FORMAT" }}</p>
+          </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {# Si un emprunt est sélectionné, cacher le champ et afficher les détails ci-dessus #}
+          {% if emprunt %}
+            {{ form.emprunt.as_hidden }}
+          {% else %}
+            <div class="mb-3">
+              {{ form.emprunt.label_tag }}
+              {{ form.emprunt }}
+              {% for err in form.emprunt.errors %}
+                <div class="text-danger small">{{ err }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            {{ form.commentaire.label_tag }}
+            {{ form.commentaire }}
+            {% for err in form.commentaire.errors %}
+              <div class="text-danger small">{{ err }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="{% url 'loans:my_loans' %}" class="btn btn-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary">Envoyer la demande</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
